@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Text Humanizer</title>
+  <!-- Bootstrap CSS (using Bootstrap 4.5.2) -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" 
+        integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" 
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" sizes="16x16" href="./images/logo.png">
+  <style>
+    /* Additional Custom Styles and Animations */
+    
+    /* Fade-in for tool section */
+    .tool {
+      animation: fadeIn 1s ease-out;
+      animation-fill-mode: forwards;
+      opacity: 0;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    /* Slide-in effect for main container */
+    .slide-in {
+      animation: slideIn 1s ease-out;
+      animation-fill-mode: forwards;
+      transform: translateY(50px);
+      opacity: 0;
+    }
+    @keyframes slideIn {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Button hover scale effect */
+    button.btn:hover {
+      transform: scale(1.05);
+      transition: transform 0.2s ease;
+    }
+
+    /* Overlay for loader */
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 9998;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    #overlay.active {
+      display: block;
+      opacity: 1;
+    }
+
+    /* Loader spinner */
+    .loader {
+      border: 8px solid #f3f3f3;
+      border-top: 8px solid #4CAF50;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 9999;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sticky Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-transparent fixed-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#"><img src="./images/logo-Black.png" width="60" height="60" alt="texthumanizer.com"></a>
+      <span class="navbar-toggler-icon navbar-toggler" type="button" data-toggle="collapse" 
+            data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"></span>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto ">
+          <li class="nav-item">
+            <a class="nav-link" href="https://texthumanize.com/">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="https://texthumanize.com/texthumanizer.html">Text Humanizer</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="https://texthumanize.com/tts.html">Text to Speech</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="https://translator-production-2fdd.up.railway.app/">Translator</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Tool Section -->
+  <section class="container-fluid pb-5 tool">
+    <main class="tool container slide-in">
+      <h1 class="text-center mb-4 text-light pt-3">AI Text Humanizer</h1>
+      
+      <!-- Overlay for Loader -->
+      <div id="overlay" class="overlay"></div>
+      <!-- Loader (hidden by default) -->
+      <div id="loader" class="loader" style="display:none;"></div>
+      
+      <div class="container">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <!-- Input Text Area -->
+            <textarea id="inputText" class="form-control" rows="15" placeholder="Enter AI-generated text here..."></textarea>
+            <p id="wordCount" class="mt-2 text-light">Input Word Count: 0</p>
+            <!-- Keyword Box -->
+            <input id="keywordBox" class="form-control mt-2" type="text" placeholder="Enter keywords separated by commas">
+            <button id="submitBtn" class="btn btn-primary mt-2">Humanize</button>
+            <button id="clearBtn" class="btn btn-danger mt-2">Clear</button>
+            <div id="wordLimitMessage" style="display:none; color:red; margin-top: 2em;">
+              Please enter 500 words or below.
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <!-- Humanized Text Area -->
+            <textarea id="humanizedText" class="form-control" rows="15" placeholder="Humanized text display here..." readonly></textarea>
+            <p id="outputWordCount" class="mt-2 text-light">Output Word Count: 0</p>
+            <div id="paginationControls" class="d-flex justify-content-between mt-2 paginationControls1">
+              <div class="copy d-flex flex-row flex-wrap w-50 justify-content-around">
+                <button id="copyBtn" class="btn btn-info mt-2">Copy</button>
+                <span id="copyMessage" style="display:none; color: #ffffff;">Copied!</span>
+                <div class="edit-options">
+                  <button id="editBtn" class="btn btn-warning mt-2">Edit</button>
+                  <button id="updateBtn" class="btn btn-success mt-2" style="display:none;">Update</button>
+                </div>
+              </div>
+              <div class="buttons mt-2 d-flex flex-row">
+                <button id="prevPage" class="btn rounded-circle" style="background-color: #48cae4;" disabled>
+                  <i class="fa-solid fa-left-long text-light"></i>
+                </button>
+                <button id="nextPage" class="btn rounded-circle" style="background-color: #48cae4;">
+                  <i class="fa-solid fa-right-long text-light"></i>
+                </button>
+              </div>
+            </div>
+            <p id="aiGeneratedPercentage" class="mt-2 text-light">AI-generated content: 0%</p>
+            <p id="humanizedPercentage" class="mt-2 text-light">Humanized content: 0%</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container-fluid bg-dark">
+      <div class="row d-flex">
+        <div class="col-lg-7 col-sm-7 col-md-7 d-flex flex-row">
+          <a class="navbar-brand" href="#">
+            <img src="./images/logo-1.png" width="60" height="60" alt="texthumanizer.com">
+          </a>
+          <div class="text-center me-5 py-4 text-capitalize text-light">
+            &copy; 2024 texthumanize.com | All rights reserved. | Developed by 
+            (<a href="https://www.edatic.in/" class="text-decoration-none text-warning fw-bold">Edatic.in</a>)
+          </div>
+        </div>
+        <div class="col-lg-5 col-md-5 col-sm-5 d-flex flex-row icons justify-content-end">
+          <i class="fa-brands fa-square-facebook fa-xl" style="color: #ffffff; margin: 1.5em;"></i>
+          <i class="fa-brands fa-square-instagram fa-xl" style="color: #ffffff; margin: 1.5em;"></i>
+          <i class="fa-brands fa-x-twitter fa-xl" style="color: #ffffff; margin: 1.5em;"></i>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- jQuery and Bootstrap JS (for Bootstrap 4.5.2) -->
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+  <script src="script.js"></script>
+  <script src="jquery.js"></script>
+  <script src="https://edatic-web-tracker-007.up.railway.app/tracking.js"></script>
+</body>
+</html>
